@@ -207,7 +207,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.black24, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
                 child: Text(_scannedUrl, style: const TextStyle(color: Colors.white, fontSize: 14), textAlign: TextAlign.center),
               ),
               const SizedBox(height: 40),
@@ -254,7 +254,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.black34, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.redAccent.withOpacity(0.3))),
+                decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.redAccent.withOpacity(0.3))),
                 child: Text(_scannedUrl, style: const TextStyle(color: Colors.redAccent, fontSize: 14, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
               ),
               const SizedBox(height: 40),
