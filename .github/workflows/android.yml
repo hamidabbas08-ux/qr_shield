@@ -17,15 +17,15 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Set up Flutter
+    - name: Set up Flutter (Latest Stable)
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.22.2' # آپ کا موجودہ فلٹر ورژن
+        channel: 'stable' # یہ خود بخود لیٹسٹ ورژن اٹھا لے گا تاکہ کوئی ایرر نہ آئے
 
     - name: Install Dependencies
       run: flutter pub get
 
-    # پہلے آپ کی ٹیسٹنگ کے لیے اصلی APK بنانا
+    # آپ کی ٹیسٹنگ کے لیے اصلی APK بنانا
     - name: Build APK for Local Testing
       run: flutter build apk --release
 
@@ -37,7 +37,7 @@ jobs:
         PLAY_STORE_KEY_PASSWORD: ${{ secrets.PLAY_STORE_KEY_PASSWORD }}
         PLAY_STORE_KEYSTORE_PASSWORD: ${{ secrets.PLAY_STORE_KEYSTORE_PASSWORD }}
 
-    # جادوئی سٹیپ: ٹیسٹنگ APK کو گٹ ہب پر ڈاؤن لوڈ کے لیے رکھنا
+    # ٹیسٹنگ APK کو ڈاؤن لوڈ کے لیے رکھنا
     - name: Upload Testing APK to GitHub Artifacts
       uses: actions/upload-artifact@v4
       with:
