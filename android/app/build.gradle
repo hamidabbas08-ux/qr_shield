@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.hamidabbas.qr_shield"
-    compileSdk 36
+    compileSdk flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -23,8 +23,8 @@ android {
 
     defaultConfig {
         applicationId "com.hamidabbas.qr_shield"
-        minSdkVersion 21
-        targetSdkVersion 36
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion flutter.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
     }
@@ -41,9 +41,6 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             signingConfig signingConfigs.release
