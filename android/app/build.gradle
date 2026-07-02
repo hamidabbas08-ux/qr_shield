@@ -45,7 +45,7 @@ android {
             shrinkResources false
         }
         debug {
-            signingConfig signingConfigs.release
+            // چوہدری صاحب، یہاں سے ریلیز چابی کا لنک ہٹا دیا ہے تاکہ ڈیبگ اے پی کے بغیر پاسورڈ کے بن سکے
         }
     }
 }
