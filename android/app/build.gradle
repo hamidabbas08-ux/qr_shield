@@ -1,0 +1,46 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace "com.hamidabbas.qr_shield"
+    compileSdk flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.7'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    signingConfigs {
+        release {
+            keyAlias System.getenv("PLAY_STORE_KEY_ALIAS")
+            keyPassword System.getenv("PLAY_STORE_KEY_PASSWORD")
+            storeFile rootProject.file("upload-keystore.jks")
+            storePassword System.getenv("PLAY_STORE_KEYSTORE_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
