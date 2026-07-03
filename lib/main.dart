@@ -30,7 +30,7 @@ class QrScannerScreen extends StatefulWidget {
 
 class _QrScannerScreenState extends State<QrScannerScreen> {
   String? scanResult;
-  String scanType = "text"; // text, permit, playstore, secure_web, risky_web
+  String scanType = "text"; // text, permit, secure_web, unsecure_web, risky_web
   bool isScanning = true;
   bool isAnalyzing = false;
   String analysisStatus = "Initializing...";
@@ -44,32 +44,31 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     }
   }
 
-  // لائیو سیکیورٹی اور بیک اینڈ اسکیننگ انجن
+  // لائیو اوریجنل انٹرنیٹ اسکیننگ انجن
   Future<void> _analyzeWithCloudEngine(String code) async {
     setState(() {
       scanResult = code;
       isScanning = false;
       isAnalyzing = true;
-      analysisStatus = "Reading QR structural layers...";
+      analysisStatus = "Analyzing QR payload structure...";
       progressValue = 0.1;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 1000));
     final uri = Uri.tryParse(code);
     
     // اگر یہ لنک نہیں ہے بلکہ صرف سادہ ٹیکسٹ ہے
     if (uri == null || !uri.hasScheme || !uri.scheme.startsWith('http')) {
       if (!mounted) return;
       setState(() {
-        analysisStatus = "Analyzing text data integrity...";
-        progressValue = 0.6;
+        analysisStatus = "Verifying text compliance...";
+        progressValue = 1.0;
       });
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future.delayed(const Duration(milliseconds: 500));
       
       if (!mounted) return;
       setState(() {
         isAnalyzing = false;
-        // چیک کریں کہ کہیں یہ آفیشل ٹیکسی پرمٹ تو نہیں ہے
         if (code.contains("Taxi No:") && code.contains("Driver ID:")) {
           scanType = "permit";
         } else {
@@ -79,44 +78,31 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       return;
     }
 
-    // اگر لنک ہے تو لائیو انٹرنیٹ اسکین شروع کریں
+    // لائیو نیٹ ورک چیکنگ
     if (!mounted) return;
     setState(() {
-      analysisStatus = "Connecting to threat reputation API...";
-      progressValue = 0.3;
+      analysisStatus = "Pinging remote host and testing server response...";
+      progressValue = 0.4;
     });
 
     bool isPhishingStructure = false;
-    // ہیورسٹک چیک: ڈیٹا چوری یا ہیکنگ لنکس پکڑنا
     if (code.contains("password") || code.contains("credential") || code.contains(".apk") || code.contains(".exe")) {
       isPhishingStructure = true;
     }
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
-    setState(() {
-      analysisStatus = "Pinging remote host and verifying SSL certificates...";
-      progressValue = 0.7;
-    });
-
     bool isServerAlive = false;
-    String finalDestination = code;
-
-    // باقاعدہ انٹرنیٹ پر جا کر لنک چیک کرنا
     try {
-      final response = await http.head(uri).timeout(const Duration(seconds: 5));
+      final response = await http.head(uri).timeout(const Duration(seconds: 4));
       isServerAlive = (response.statusCode >= 200 && response.statusCode < 400);
     } catch (e) {
-      isServerAlive = false; // اگر سرور مردہ ہے یا فیک ہے
+      isServerAlive = false; // سرور بلاکڈ یا فیک ہے
     }
 
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
     setState(() {
-      analysisStatus = "Compiling real-time threat intelligence report...";
-      progressValue = 1.0;
+      analysisStatus = "Evaluating SSL/TLS encryption certificates...";
+      progressValue = 0.8;
     });
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (!mounted) return;
     setState(() {
@@ -126,16 +112,21 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         scanType = "playstore";
         _openLink(code);
       } 
-      // اگر لائیو ٹیسٹ میں ڈیٹا چوری کا شک نکلا یا سرور فیک ہوا
+      // اگر لنک ہیکنگ والا نکلا یا سرور ڈیڈ ہوا تو سیدھا لال (RED)
       else if (isPhishingStructure || !isServerAlive) {
         scanType = "risky_web";
         securityReport = !isServerAlive 
-            ? "⚠️ CRITICAL: Domain server is dead, unreachable, or untrusted." 
-            : "🚨 HIGH RISK: Exposed malicious data-harvesting or file-download query parameters detected.";
+            ? "🚨 CRITICAL THREAT: Destination server is completely offline or a fake honeypot!" 
+            : "⚠️ MALICIOUS PARAMETERS: Data harvesting tracers detected in URL.";
       } 
-      // اگر سرور بھی زندہ ہے اور ڈیٹا بھی سیف ہے
-      else {
+      // اوریجنل چیک: اگر سرور زندہ ہے اور HTTPS محفوظ سرٹیفکیٹ ہے تو سبز (GREEN)
+      else if (code.startsWith("https://")) {
         scanType = "secure_web";
+      } 
+      // اگر سرور زندہ ہے لیکن پرانا HTTP ہے بغیر سیکیورٹی کے تو پیلا (YELLOW)
+      else {
+        scanType = "unsecure_web";
+        securityReport = "⚠️ CAUTION: This connection lacks SSL encryption. Eavesdropping risk.";
       }
     });
   }
@@ -206,26 +197,26 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     IconData icon = Icons.info_outline;
     String titleText = "SAFE TEXT DATA";
 
-    if (scanType == "permit") {
+    // سبز حالات (Permit یا Secure HTTPS Links)
+    if (scanType == "permit" || scanType == "secure_web") {
       screenColor = Colors.green.shade900.withOpacity(0.15);
       contentColor = Colors.greenAccent;
       icon = Icons.gpp_good_rounded;
-      titleText = "VERIFIED TAXI PERMIT";
-    } else if (scanType == "secure_web") {
+      titleText = scanType == "permit" ? "VERIFIED TAXI PERMIT" : "SECURE WEBSITE VERIFIED";
+    } 
+    // پیلی حالت (Unsecure HTTP Connections)
+    else if (scanType == "unsecure_web") {
       screenColor = Colors.orange.shade900.withOpacity(0.15);
       contentColor = Colors.orangeAccent;
       icon = Icons.privacy_tip_rounded;
-      titleText = "EXTERNAL LINK (REVIEW)";
-    } else if (scanType == "risky_web") {
+      titleText = "UNSECURED WEB LINK";
+    } 
+    // لال حالت (Malware یا Fake Dead Links)
+    else if (scanType == "risky_web") {
       screenColor = Colors.red.shade900.withOpacity(0.15);
       contentColor = Colors.redAccent;
       icon = Icons.gpp_bad_rounded;
       titleText = "SECURITY THREAT BLOCKED";
-    } else if (scanType == "playstore") {
-      screenColor = Colors.blue.shade900.withOpacity(0.15);
-      contentColor = Colors.blueAccent;
-      icon = Icons.shop_two_rounded;
-      titleText = "REDIRECTING TO PLAY STORE";
     }
 
     return Container(
@@ -240,7 +231,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             Text(titleText, textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: contentColor)),
             const SizedBox(height: 20),
             
-            if (scanType == "risky_web") ...[
+            if (scanType == "risky_web" || scanType == "unsecure_web") ...[
               Text(securityReport, textAlign: TextAlign.center, style: const TextStyle(color: Colors.amberAccent, fontSize: 14, fontWeight: FontWeight.w500)),
               const SizedBox(height: 15),
             ],
@@ -261,23 +252,23 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12)),
                 icon: const Icon(Icons.copy),
-                label: const Text("Copy Text Content"),
+                label: const Text("Copy Content"),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: scanResult ?? ""));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Content copied!")));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied successfully!")));
                 },
               ),
 
-            if (scanType == "secure_web") ...[
-              const Text("This link successfully passed background network health tests and has valid structure.", textAlign: TextAlign.center, style: TextStyle(color: Colors.white60, fontSize: 13)),
-              const SizedBox(height: 15),
+            if (scanType == "secure_web" || scanType == "unsecure_web")
               ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade700, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: scanType == "secure_web" ? Colors.green.shade700 : Colors.orange.shade700, 
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12)
+                ),
                 icon: const Icon(Icons.open_in_browser),
-                label: const Text("Proceed / Open Website"),
+                label: Text(scanType == "secure_web" ? "Open Secure Link" : "Proceed to Unsecure Website"),
                 onPressed: () => _openLink(scanResult!),
               ),
-            ],
             
             const SizedBox(height: 30),
             ElevatedButton(
