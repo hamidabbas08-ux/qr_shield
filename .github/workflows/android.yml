@@ -25,15 +25,26 @@ jobs:
     - name: Install Dependencies
       run: flutter pub get
 
-    # Play Store ke liye final signed AAB bundle banana
+    # 1. لوکل ٹیسٹنگ والی APK بنانا
+    - name: Build APK for Local Testing
+      run: flutter build apk --debug
+
+    # 2. اے پی کے فائل کو کلاؤڈ پر محفوظ کرنا
+    - name: Upload Testing APK to GitHub Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: QR-Shield-Testing-APK
+        path: build/app/outputs/flutter-apk/app-debug.apk
+
+    # 3. پلے اسٹور کے لیے فائنل AAB بنانا (صحیح ناموں کے ساتھ)
     - name: Build App Bundle (AAB)
       run: flutter build appbundle --release
       env:
-        PLAY_STORE_KEY_ALIAS: ${{ secrets.PLAY_STORE_KEY_ALIAS }}
-        PLAY_STORE_KEY_PASSWORD: ${{ secrets.PLAY_STORE_KEY_PASSWORD }}
-        PLAY_STORE_KEYSTORE_PASSWORD: ${{ secrets.PLAY_STORE_KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
-    # Final AAB file ko GitHub Artifacts par upload karna
+    # 4. فائنل AAB فائل کو کلاؤڈ پر محفوظ کرنا
     - name: Upload App Bundle to GitHub Artifacts
       uses: actions/upload-artifact@v4
       with:

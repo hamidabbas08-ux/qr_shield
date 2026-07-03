@@ -31,10 +31,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias System.getenv("PLAY_STORE_KEY_ALIAS")
-            keyPassword System.getenv("PLAY_STORE_KEY_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
             storeFile rootProject.file("upload-keystore.jks")
-            storePassword System.getenv("PLAY_STORE_KEYSTORE_PASSWORD")
+            storePassword System.getenv("KEYSTORE_PASSWORD")
         }
     }
 
@@ -45,7 +45,7 @@ android {
             shrinkResources false
         }
         debug {
-            // چوہدری صاحب، یہاں سے ریلیز چابی کا لنک ہٹا دیا ہے تاکہ ڈیبگ اے پی کے بغیر پاسورڈ کے بن سکے
+            // ڈیبگ بلڈ کے لیے کسی چابی کی ضرورت نہیں
         }
     }
 }
